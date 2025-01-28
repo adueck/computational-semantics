@@ -1,7 +1,6 @@
-module PrepLogicFuncs where
+module PropLogicFuncs where
 
 import Data.List (nub, sort)
-import PropLogicParser
 import PropLogicTypes
 
 countOpsInList :: [Form] -> Int

@@ -19,11 +19,6 @@ instance Show Variable where
       showInts [i] = show i
       showInts (i : is1) = show i ++ "_" ++ showInts is1
 
-x, y, z :: Variable
-x = Variable "x" []
-y = Variable "y" []
-z = Variable "z" []
-
 data Formula a
   = Atom String [a]
   | Eq a a

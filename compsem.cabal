@@ -75,7 +75,8 @@ executable compsem
     -- Other library packages from which modules are imported.
     build-depends:    base ^>=4.19.1.0,
         parsec,
-        mtl
+        mtl,
+        HUnit
 
     -- Directories containing source files.
     hs-source-dirs:   app

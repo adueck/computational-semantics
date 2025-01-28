@@ -1,6 +1,5 @@
 module PredLogicFuncs where
 
-import PredLogicParser
 import PredLogicTypes
 
 closedForm :: Formula Variable -> Bool
@@ -23,31 +22,28 @@ withoutIDs :: Formula Variable -> Formula Variable
 withoutIDs (Atom x v) = Atom x v
 withoutIDs (Eq l r) = Eq l r
 withoutIDs (Neg f) = Neg (withoutIDs f)
-withoutIDs (Impl l r) = withoutIDs (Neg (Conj [l, r]))
-withoutIDs (Equi l r) = withoutIDs (Conj [Impl l r, Impl r l])
+withoutIDs (Impl l r) = withoutIDs (Disj [Neg l, r])
+withoutIDs (Equi l r) = withoutIDs (Conj [Disj [Neg l, r], Disj [l, Neg r]])
 withoutIDs (Conj fs) = Conj (fmap withoutIDs fs)
 withoutIDs (Disj fs) = Disj (fmap withoutIDs fs)
 withoutIDs (Forall v f) = Forall v (withoutIDs f)
 withoutIDs (Exists v f) = Forall v (withoutIDs f)
 
 nnf :: Formula Variable -> Formula Variable
-nnf = nnf' . withoutIDs
+nnf (Atom x v) = Atom x v
+nnf (Eq l r) = Eq l r
+nnf (Conj fs) = Conj (fmap nnf fs)
+nnf (Disj fs) = Disj (fmap nnf fs)
+nnf (Neg (Conj fs)) = Disj (fmap Neg fs)
+nnf (Neg (Disj fs)) = Conj (fmap Neg fs)
+nnf (Neg (Neg x)) = nnf x
+nnf (Neg (Forall v f)) = Exists v (nnf (Neg f))
+nnf (Neg (Exists v f)) = Forall v (nnf (Neg f))
+nnf (Neg x) = Neg x
+nnf (Impl l r) = withoutIDs (Impl l r)
+nnf (Equi l r) = withoutIDs (Equi l r)
+nnf (Forall v f) = Forall v (nnf f)
+nnf (Exists v f) = Exists v (nnf f)
 
-nnf' :: Formula Variable -> Formula Variable
-nnf' (Atom x v) = Atom x v
-nnf' (Eq l r) = Eq l r
-nnf' (Conj fs) = Conj (fmap nnf' fs)
-nnf' (Disj fs) = Disj (fmap nnf' fs)
-nnf' (Neg (Conj fs)) = Disj (fmap Neg fs)
-nnf' (Neg (Disj fs)) = Conj (fmap Neg fs)
-nnf' (Neg (Neg x)) = nnf' x
-nnf' (Neg (Forall v f)) = Exists v (nnf' (Neg f))
-nnf' (Neg (Exists v f)) = Forall v (nnf' (Neg f))
-nnf' (Neg x) = Neg x
-nnf' (Impl l r) = Impl (nnf' l) (nnf' r)
-nnf' (Equi l r) = Equi (nnf' l) (nnf' r)
-nnf' (Forall v f) = Forall v (nnf' f)
-nnf' (Exists v f) = Exists v (nnf' f)
-
--- >>> nnf (parseFormulaUnsafe "~Ax conj[R[x],R[y]]")
--- Ex disj[~R[x],~R[y]]
+-- >>> nnf (parseFormulaUnsafe "~Ex R[x]")
+-- Ex ~R[x]

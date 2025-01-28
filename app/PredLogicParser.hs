@@ -6,9 +6,11 @@ module PredLogicParser
 where
 
 import Control.Applicative
+import Data.Functor.Identity
 import PredLogicTypes
 import Text.Parsec qualified as Parsec
 
+parse :: (Parsec.Stream s Data.Functor.Identity.Identity t) => Parsec.Parsec s () a -> s -> Either Parsec.ParseError a
 parse rule = Parsec.parse rule "(source)"
 
 parseVar :: Parsec.Parsec String () Variable
@@ -46,7 +48,7 @@ parseEquiOrImp = do
   s <- Parsec.string "<=>" <|> Parsec.string "==>"
   r <- parseFormula
   _ <- Parsec.char ')'
-  return $ if s == "<=>" then Impl l r else Equi l r
+  return $ if s == "<=>" then Equi l r else Impl l r
 
 parseConj :: Parsec.Parsec String () (Formula Variable)
 parseConj = do
