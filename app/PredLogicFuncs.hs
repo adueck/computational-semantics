@@ -19,7 +19,7 @@ collectUnbound (Disj fs) bound = foldr collectUnbound bound fs
 collectUnbound (Forall (Variable s _) f) bound = collectUnbound f (s : bound)
 collectUnbound (Exists (Variable s _) f) bound = collectUnbound f (s : bound)
 
-withoutIDs :: Formula Variable -> Formula Variable
+withoutIDs :: Formula a -> Formula a
 withoutIDs (Atom x v) = Atom x v
 withoutIDs (Eq l r) = Eq l r
 withoutIDs (Neg f) = Neg (withoutIDs f)
@@ -30,7 +30,7 @@ withoutIDs (Disj fs) = Disj (fmap withoutIDs fs)
 withoutIDs (Forall v f) = Forall v (withoutIDs f)
 withoutIDs (Exists v f) = Forall v (withoutIDs f)
 
-nnf :: Formula Variable -> Formula Variable
+nnf :: Formula a -> Formula a
 nnf (Atom x v) = Atom x v
 nnf (Eq l r) = Eq l r
 nnf (Conj fs) = Conj (fmap nnf fs)

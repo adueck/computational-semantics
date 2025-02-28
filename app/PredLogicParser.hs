@@ -2,6 +2,7 @@ module PredLogicParser
   ( parse,
     parseFormula,
     parseVar,
+    parseTerm,
   )
 where
 
@@ -80,10 +81,3 @@ parseForallOrExists pp = do
   _ <- Parsec.char ' '
   f <- parseFormula pp
   return $ (if s == "A" then Forall else Exists) var f
-
--- parseVarFormulaUnsafe s = case parse parseVarFormula s of
---   Right f -> f
---   Left e -> error (show e)
-
--- >>> parse (parseFormula parseTerm) "(R[x,y]==>R[y])"
--- Right (R[x,y]==>R[y])
