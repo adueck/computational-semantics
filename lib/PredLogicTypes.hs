@@ -54,10 +54,7 @@ instance Show Term where
   show (Struct s []) = s
   show (Struct s ts) = s ++ show ts
 
-tx, ty, tf :: Term
-tx = Var (Variable "x" [])
-ty = Var (Variable "y" [])
-tf = Struct "f" [Var (Variable "x" []), Var (Variable "y" [])]
-
---- >>> show tf
--- "f[x,y]"
+-- tx, ty, tf :: Term
+-- tx = Var (Variable "x" [])
+-- ty = Var (Variable "y" [])
+-- tf = Struct "f" [Var (Variable "x" []), Var (Variable "y" [])]

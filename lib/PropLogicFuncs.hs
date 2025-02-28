@@ -9,8 +9,8 @@ countOpsInList = foldr (\x a -> a + opsNr x) 0
 opsNr :: Form -> Int
 opsNr (P _) = 0
 opsNr (Ng f) = 1 + opsNr f
-opsNr (Cnj fs) = countOpsInList fs
-opsNr (Dsj fs) = countOpsInList fs
+opsNr (Cnj fs) = 1 + countOpsInList fs
+opsNr (Dsj fs) = 1 + countOpsInList fs
 
 findDepthInList :: [Form] -> Int
 findDepthInList = maximum . fmap depth
