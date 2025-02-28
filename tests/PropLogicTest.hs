@@ -33,9 +33,6 @@ opsNrExs =
       opsNr . unsafeRight . parse parseForm
     )
 
--- >>> propNames . unsafeRight . parse parseForm $ "&[r,q]"
--- ["q","r"]
-
 propLogicTests :: [TestBlock]
 propLogicTests = [propNamesExs, depthExs, opsNrExs]
 
