@@ -48,3 +48,27 @@ eval tbl (P c) = case v of
 eval tbl (Ng f) = not (eval tbl f)
 eval tbl (Cnj fs) = all (eval tbl) fs
 eval tbl (Dsj fs) = any (eval tbl) fs
+
+evalAlt :: [String] -> Form -> Bool
+evalAlt tbl (P c) = c `elem` tbl
+evalAlt tbl (Ng f) = not (evalAlt tbl f)
+evalAlt tbl (Cnj fs) = all (evalAlt tbl) fs
+evalAlt tbl (Dsj fs) = any (evalAlt tbl) fs
+
+tautology :: Form -> Bool
+tautology f = all (`eval` f) (allVals f)
+
+satisfiable :: Form -> Bool
+satisfiable f = any (`eval` f) (allVals f)
+
+contradiction :: Form -> Bool
+contradiction = not . satisfiable
+
+implies :: Form -> Form -> Bool
+implies f1 f2 = contradiction (Cnj [f1, Ng f2])
+
+impliesL :: [Form] -> Form -> Bool
+impliesL = implies . Cnj
+
+propEquiv :: Form -> Form -> Bool
+propEquiv f1 f2 = f1 `implies` f2 && f2 `implies` f1
