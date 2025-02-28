@@ -1,7 +1,7 @@
 module PredLogicParser
   ( parse,
     parseFormula,
-    parseFormulaUnsafe,
+    parseVar,
   )
 where
 
@@ -13,89 +13,77 @@ import Text.Parsec qualified as Parsec
 parse :: (Parsec.Stream s Data.Functor.Identity.Identity t) => Parsec.Parsec s () a -> s -> Either Parsec.ParseError a
 parse rule = Parsec.parse rule "(source)"
 
+parseFormula :: Parsec.Parsec String () a -> Parsec.Parsec String () (Formula a)
+parseFormula pp =
+  foldl1
+    (<|>)
+    (($ pp) <$> [parseAtom, parseEq, parseNeg, parseEquiOrImp, parseConjOrDisj, parseForallOrExists])
+
+parseList :: Parsec.Parsec String () a -> Parsec.Parsec String () [a]
+parseList pp =
+  Parsec.between (Parsec.char '[') (Parsec.char ']') $
+    Parsec.sepBy1 pp (Parsec.spaces >> Parsec.char ',' >> Parsec.spaces)
+
 parseVar :: Parsec.Parsec String () Variable
 parseVar = do
   letter <- Parsec.oneOf "xyz"
   digits <- Parsec.many Parsec.digit
   return (Variable (letter : digits) [])
 
-parseFormula :: Parsec.Parsec String () (Formula Variable)
-parseFormula = parseAtom <|> parseEq <|> parseNeg <|> parseEquiOrImp <|> parseConj <|> parseConj <|> parseDisj <|> parseForall <|> parseExists
+parseTerm :: Parsec.Parsec String () Term
+parseTerm = (Var <$> parseVar) <|> parseStruct
 
-parseAtom :: Parsec.Parsec String () (Formula Variable)
-parseAtom = do
+parseStruct :: Parsec.Parsec String () Term
+parseStruct = do
+  _ <- Parsec.char 'f'
+  digits <- Parsec.many Parsec.digit
+  terms <- parseList parseTerm
+  return (Struct ('f' : digits) terms)
+
+parseAtom :: Parsec.Parsec String () a -> Parsec.Parsec String () (Formula a)
+parseAtom pp = do
   _ <- Parsec.char 'R'
-  vars <- parseVars
+  vars <- parseList pp
   return $ Atom "R" vars
 
-parseEq :: Parsec.Parsec String () (Formula Variable)
-parseEq = do
-  l <- parseVar
+parseEq :: Parsec.Parsec String () a -> Parsec.Parsec String () (Formula a)
+parseEq pp = do
+  l <- pp
   _ <- Parsec.string "=="
-  r <- parseVar
-  return $ Eq l r
+  Eq l <$> pp
 
-parseNeg :: Parsec.Parsec String () (Formula Variable)
-parseNeg = do
+parseNeg :: Parsec.Parsec String () a -> Parsec.Parsec String () (Formula a)
+parseNeg pp = do
   _ <- Parsec.char '~'
-  f <- parseFormula
+  f <- parseFormula pp
   return $ Neg f
 
-parseEquiOrImp :: Parsec.Parsec String () (Formula Variable)
-parseEquiOrImp = do
+parseEquiOrImp :: Parsec.Parsec String () a -> Parsec.Parsec String () (Formula a)
+parseEquiOrImp pp = do
   _ <- Parsec.char '('
-  l <- parseFormula
+  l <- parseFormula pp
   s <- Parsec.string "<=>" <|> Parsec.string "==>"
-  r <- parseFormula
+  r <- parseFormula pp
   _ <- Parsec.char ')'
-  return $ if s == "<=>" then Equi l r else Impl l r
+  return $ (if s == "<=>" then Equi else Impl) l r
 
-parseConj :: Parsec.Parsec String () (Formula Variable)
-parseConj = do
-  _ <- Parsec.string "conj"
-  fs <- parseFormulas
-  return $ Conj fs
+parseConjOrDisj :: Parsec.Parsec String () a -> Parsec.Parsec String () (Formula a)
+parseConjOrDisj pp = do
+  sign <- Parsec.string "conj" <|> Parsec.string "disj"
+  fs <- parseList $ parseFormula pp
+  return $ (if sign == "conj" then Conj else Disj) fs
 
-parseDisj :: Parsec.Parsec String () (Formula Variable)
-parseDisj = do
-  _ <- Parsec.string "disj"
-  fs <- parseFormulas
-  return $ Disj fs
-
-parseForall :: Parsec.Parsec String () (Formula Variable)
-parseForall = do
-  _ <- Parsec.string "A"
+parseForallOrExists :: Parsec.Parsec String () a -> Parsec.Parsec String () (Formula a)
+parseForallOrExists pp = do
+  s <- Parsec.string "A" <|> Parsec.string "E"
   var <- parseVar
   _ <- Parsec.char ' '
-  f <- parseFormula
-  return $ Forall var f
+  f <- parseFormula pp
+  return $ (if s == "A" then Forall else Exists) var f
 
-parseExists :: Parsec.Parsec String () (Formula Variable)
-parseExists = do
-  _ <- Parsec.string "E"
-  var <- parseVar
-  _ <- Parsec.char ' '
-  f <- parseFormula
-  return $ Exists var f
+-- parseVarFormulaUnsafe s = case parse parseVarFormula s of
+--   Right f -> f
+--   Left e -> error (show e)
 
-parseVars :: Parsec.Parsec String () [Variable]
-parseVars = do
-  _ <- Parsec.char '['
-  f <- Parsec.sepBy parseVar (Parsec.spaces >> Parsec.char ',' >> Parsec.spaces)
-  _ <- Parsec.char ']'
-  return f
-
-parseFormulas :: Parsec.Parsec String () [Formula Variable]
-parseFormulas = do
-  _ <- Parsec.char '['
-  f <- Parsec.sepBy parseFormula (Parsec.spaces >> Parsec.char ',' >> Parsec.spaces)
-  _ <- Parsec.char ']'
-  return f
-
--- >>> parse parseFormula "Ax Ay (R[x,y]==>R[y,x])"
--- Right Ax Ay (R[x,y]==>R[y,x])
-
-parseFormulaUnsafe :: String -> Formula Variable
-parseFormulaUnsafe s = case parse parseFormula s of
-  Right f -> f
-  Left e -> error (show e)
+-- >>> parse (parseFormula parseTerm) "(R[x,y]==>R[y])"
+-- Right (R[x,y]==>R[y])

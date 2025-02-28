@@ -1,6 +1,7 @@
 module PredLogicTypes
   ( Variable (..),
     Formula (..),
+    Term (..),
   )
 where
 
@@ -45,5 +46,18 @@ instance (Show a) => Show (Formula a) where
   show (Forall v f) = "A" ++ show v ++ (' ' : show f)
   show (Exists v f) = "E" ++ show v ++ (' ' : show f)
 
---- >>> show x
--- "x2_3_1"
+data Term = Var Variable | Struct String [Term]
+  deriving (Eq, Ord)
+
+instance Show Term where
+  show (Var v) = show v
+  show (Struct s []) = s
+  show (Struct s ts) = s ++ show ts
+
+tx, ty, tf :: Term
+tx = Var (Variable "x" [])
+ty = Var (Variable "y" [])
+tf = Struct "f" [Var (Variable "x" []), Var (Variable "y" [])]
+
+--- >>> show tf
+-- "f[x,y]"
