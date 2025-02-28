@@ -72,3 +72,6 @@ impliesL = implies . Cnj
 
 propEquiv :: Form -> Form -> Bool
 propEquiv f1 f2 = f1 `implies` f2 && f2 `implies` f1
+
+update :: [[(String, Bool)]] -> Form -> [[(String, Bool)]]
+update vals f = [v | v <- vals, eval v f]
