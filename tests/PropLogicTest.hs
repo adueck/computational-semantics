@@ -8,7 +8,7 @@ propNamesExs :: TestBlock
 propNamesExs =
   TestBlock
     ( [ ("-&[p,v[p,-&[q,r2]]]", ["p", "q", "r2"]),
-        ("&[r,q,v]", ["r", "q", "v"])
+        ("&[r,q]", ["q", "r"])
       ],
       propNames . unsafeRight . parse parseForm
     )
@@ -17,8 +17,8 @@ depthExs :: TestBlock
 depthExs =
   TestBlock
     ( [ ("-&[p,v[-p,-&[q,r2]]]", 5),
-        ("v[p,-q, -p]", 2),
-        ("&[r,q,v]", 1)
+        ("v[p,-q]", 2),
+        ("&[r,q]", 1)
       ],
       depth . unsafeRight . parse parseForm
     )
@@ -26,12 +26,15 @@ depthExs =
 opsNrExs :: TestBlock
 opsNrExs =
   TestBlock
-    ( [ ("-&[p,v[p,-&[q,r2]]]", 5),
-        ("v[p,-q, &[-p,v[-p,-q]]]", 7),
-        ("&[r,q,v]", 1)
+    ( [ ("-&[p,v[-p,-&[q,r2]]]", 6),
+        ("v[p,&[-p,v[-p,-q]]]", 6),
+        ("&[r,q]", 1)
       ],
       opsNr . unsafeRight . parse parseForm
     )
+
+-- >>> propNames . unsafeRight . parse parseForm $ "&[r,q]"
+-- ["q","r"]
 
 propLogicTests :: [TestBlock]
 propLogicTests = [propNamesExs, depthExs, opsNrExs]

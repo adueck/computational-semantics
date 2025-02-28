@@ -78,7 +78,7 @@ openFormExs =
     )
 
 predLogicTests :: [TestBlock]
-predLogicTests = [parseExs, collectUnboundExs, nnfExs, varsInFormExs]
+predLogicTests = [parseExs, collectUnboundExs, nnfExs, freeVarsInFormExs, varsInFormExs, openFormExs]
 
 unsafeRight :: (Show a) => Either a b -> b
 unsafeRight (Right b) = b
