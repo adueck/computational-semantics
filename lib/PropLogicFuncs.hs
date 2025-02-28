@@ -30,5 +30,21 @@ propNames (Ng f) = propNames f
 propNames (Cnj fs) = propNamesList fs
 propNames (Dsj fs) = propNamesList fs
 
--- >>> (propNames . parseFormUnsafe) "-&[p,v[p,-&[q,r2]]]"
--- ["p","q","r2"]
+genVals :: [String] -> [[(String, Bool)]]
+genVals [] = [[]]
+genVals (n : ns) =
+  map ((n, True) :) (genVals ns)
+    ++ map ((n, False) :) (genVals ns)
+
+allVals :: Form -> [[(String, Bool)]]
+allVals = genVals . propNames
+
+eval :: [(String, Bool)] -> Form -> Bool
+eval tbl (P c) = case v of
+  Just val -> val
+  Nothing -> error ("ERROR: " ++ show c ++ " not defined")
+  where
+    v = lookup c tbl
+eval tbl (Ng f) = not (eval tbl f)
+eval tbl (Cnj fs) = all (eval tbl) fs
+eval tbl (Dsj fs) = any (eval tbl) fs

@@ -7,12 +7,9 @@ module PredLogicParser
 where
 
 import Control.Applicative
-import Data.Functor.Identity
+import ParseTools
 import PredLogicTypes
 import Text.Parsec qualified as Parsec
-
-parse :: (Parsec.Stream s Data.Functor.Identity.Identity t) => Parsec.Parsec s () a -> s -> Either Parsec.ParseError a
-parse rule = Parsec.parse rule "(source)"
 
 parseFormula :: Parsec.Parsec String () a -> Parsec.Parsec String () (Formula a)
 parseFormula pp =

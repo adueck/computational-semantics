@@ -6,12 +6,9 @@ module PropLogicParser
 where
 
 import Control.Applicative (Alternative ((<|>)))
-import Data.Functor.Identity
+import ParseTools
 import PropLogicTypes
 import Text.Parsec qualified as Parsec
-
-parse :: (Parsec.Stream s Data.Functor.Identity.Identity t) => Parsec.Parsec s () a -> s -> Either Parsec.ParseError a
-parse rule = Parsec.parse rule "(source)"
 
 parseFormUnsafe :: String -> Form
 parseFormUnsafe s = case parse parseForm s of
@@ -48,6 +45,3 @@ parseDsj = do
 
 parseForm :: Parsec.Parsec String () Form
 parseForm = parseP <|> parseNg <|> parseCnj <|> parseDsj
-
--- >>> parse parseForm "&[p,q2,-&[r1,-q]]"
--- Right &[p,q2,-&[r1,-q]]
