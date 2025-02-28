@@ -2,6 +2,7 @@ module PropLogicTest (propLogicTests) where
 
 import PropLogicFuncs
 import PropLogicParser
+import PropLogicTypes (Form)
 import TestTypes
 
 propNamesExs :: TestBlock
@@ -10,7 +11,7 @@ propNamesExs =
     ( [ ("-&[p,v[p,-&[q,r2]]]", ["p", "q", "r2"]),
         ("&[r,q]", ["q", "r"])
       ],
-      propNames . unsafeRight . parse parseForm
+      propNames . getParsed
     )
 
 depthExs :: TestBlock
@@ -20,7 +21,7 @@ depthExs =
         ("v[p,-q]", 2),
         ("&[r,q]", 1)
       ],
-      depth . unsafeRight . parse parseForm
+      depth . getParsed
     )
 
 opsNrExs :: TestBlock
@@ -30,11 +31,14 @@ opsNrExs =
         ("v[p,&[-p,v[-p,-q]]]", 6),
         ("&[r,q]", 1)
       ],
-      opsNr . unsafeRight . parse parseForm
+      opsNr . getParsed
     )
 
 propLogicTests :: [TestBlock]
 propLogicTests = [propNamesExs, depthExs, opsNrExs]
+
+getParsed :: String -> Form
+getParsed = unsafeRight . parse parseForm
 
 unsafeRight :: (Show a) => Either a b -> b
 unsafeRight (Right b) = b

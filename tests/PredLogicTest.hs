@@ -4,6 +4,7 @@ import PredLogicFuncs
 import PredLogicParser
 import PredLogicTypes
 import TestTypes
+import Text.Parsec (Parsec)
 
 parseExs :: TestBlock
 parseExs =
@@ -19,7 +20,7 @@ parseExs =
         ("Ey R[x]", Exists (Variable "y" []) $ Atom "R" [Variable "x" []]),
         ("(Ex R[x,y]==>R[y])", Impl (Exists (Variable "x" []) $ Atom "R" [Variable "x" [], Variable "y" []]) (Atom "R" [Variable "y" []]))
       ],
-      unsafeRight . parse (parseFormula parseVar)
+      getParsed parseVar
     )
 
 collectUnboundExs :: TestBlock
@@ -29,7 +30,7 @@ collectUnboundExs =
         ("x==z2", ["x", "z2"]),
         ("Ex Ay R[x,y,z]", ["z"])
       ],
-      \s -> collectUnbound ((unsafeRight . parse (parseFormula parseVar)) s) []
+      \s -> (collectUnbound $ getParsed parseVar s) []
     )
 
 nnfExs :: TestBlock
@@ -47,14 +48,14 @@ nnfExs =
         ("~disj[R[x],~conj[R[x],R[y]]]", "conj[~R[x],conj[R[x],R[y]]]"),
         ("~Ax ~Ex R[x]", "Ex Ex R[x]")
       ],
-      show . nnf . unsafeRight . parse (parseFormula parseVar)
+      show . nnf . getParsed parseVar
     )
 
 varsInFormExs :: TestBlock
 varsInFormExs =
   TestBlock
     ( [("~disj[R[x],R[f[x1,x2]]]", [Variable "x" [], Variable "x1" [], Variable "x2" []])],
-      varsInForm . unsafeRight . parse (parseFormula parseTerm)
+      varsInForm . getParsed parseTerm
     )
 
 freeVarsInFormExs :: TestBlock
@@ -64,7 +65,7 @@ freeVarsInFormExs =
         ("Ax Ex1 ~disj[R[x],R[f[x1,x2]]]", [Variable "x2" []]),
         ("Ax Ex1 ~conj[R[x],Ex2 R[f[x1,x2]]]", [])
       ],
-      freeVarsInForm . unsafeRight . parse (parseFormula parseTerm)
+      freeVarsInForm . getParsed parseTerm
     )
 
 openFormExs :: TestBlock
@@ -74,11 +75,14 @@ openFormExs =
         ("Ax Ex1 ~disj[R[x],R[f[x1,x2]]]", False),
         ("Ax Ex1 ~conj[R[x],Ex2 R[f[x1,x2]]]", True)
       ],
-      openForm . unsafeRight . parse (parseFormula parseTerm)
+      openForm . getParsed parseTerm
     )
 
 predLogicTests :: [TestBlock]
 predLogicTests = [parseExs, collectUnboundExs, nnfExs, freeVarsInFormExs, varsInFormExs, openFormExs]
+
+getParsed :: Parsec String () a -> String -> Formula a
+getParsed f = unsafeRight . parse (parseFormula f)
 
 unsafeRight :: (Show a) => Either a b -> b
 unsafeRight (Right b) = b
