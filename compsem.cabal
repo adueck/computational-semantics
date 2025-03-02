@@ -11,12 +11,18 @@ build-type:         Simple
 common warnings
     ghc-options: -Wall
 
+executable inference-engine
+    import:           warnings
+    main-is:          Main.hs
+    build-depends:    base ^>=4.19.1.0
+    hs-source-dirs:   inference-engine
+    default-language: GHC2021
+
 executable compsem
     import:           warnings
     main-is:          Main.hs
     build-depends:    base ^>=4.19.1.0,
         compsem-lib,
-        HUnit,
         parsec,
         mtl
     hs-source-dirs:   app
